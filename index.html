@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Bangers&family=Bebas+Neue&family=Dancing+Script:wght@700&family=Lobster&family=Orbitron:wght@700&family=Pacifico&family=Permanent+Marker&family=Press+Start+2P&family=Righteous&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Su<span>doku</span></h1>
+      <div class="header-meta">
+        <span id="timer">00:00</span>
+        <div class="badge-wrapper">
+          <span id="difficulty-badge">Medium</span>
+          <div id="badge-dropdown" class="badge-dropdown hidden">
+            <button class="badge-diff-btn" data-diff="easy">Easy</button>
+            <button class="badge-diff-btn" data-diff="medium">Medium</button>
+            <button class="badge-diff-btn" data-diff="hard">Hard</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="board-layout">
+      <div id="grid"></div>
+
+      <div class="controls-panel">
+        <div class="pencil-bar">
+          <button id="btn-pencil" class="btn-mode btn-secondary">
+            <span>✏ Pencil</span>
+            <kbd>Space</kbd>
+          </button>
+        </div>
+
+        <div id="numpad"></div>
+
+        <div class="actions">
+          <button class="btn-secondary" id="btn-undo">Undo</button>
+          <button class="btn-secondary" id="btn-check">Check</button>
+          <button class="btn-secondary" id="btn-solve">Solve</button>
+          <div class="new-game-wrapper">
+            <button id="btn-new-game">New</button>
+            <div id="difficulty-dropdown" class="difficulty-dropdown hidden">
+              <button class="diff-btn" data-diff="easy">Easy</button>
+              <button class="diff-btn" data-diff="medium">Medium</button>
+              <button class="diff-btn" data-diff="hard">Hard</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="theme-tip">Press <kbd>Shift</kbd> to switch theme</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="theme-overlay" class="theme-overlay hidden">
+    <div class="theme-box">
+      <p class="theme-hint" id="theme-hint">type "light" or "dark"</p>
+      <div class="theme-typed" id="theme-typed"></div>
+      <p class="theme-esc"><kbd>esc</kbd> to cancel</p>
+    </div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h2 id="modal-title">Puzzle Complete!</h2>
+      <p id="modal-time"></p>
+      <button id="btn-play-again">Play Again</button>
+    </div>
+  </div>
+
+  <script src="sudoku.js"></script>
+</body>
+</html>
