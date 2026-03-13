@@ -33,6 +33,8 @@ function getTargetWord() {
   return current === 'dark' ? 'light' : 'dark';
 }
 
+let pausedBeforeTheme = false;
+
 function openThemeOverlay() {
   themeOpen   = true;
   themeTyped  = '';
@@ -44,11 +46,23 @@ function openThemeOverlay() {
   void box.offsetWidth; // force reflow to restart animation
   box.classList.add('pop-in');
   renderThemeTyped();
+  pausedBeforeTheme = game.paused;
+  pauseTimer();
 }
 
 function closeThemeOverlay() {
   themeOpen = false;
-  document.getElementById('theme-overlay').classList.add('hidden');
+  const overlay = document.getElementById('theme-overlay');
+  const box     = document.querySelector('.theme-box');
+  box.classList.remove('pop-in', 'shake');
+  box.classList.add('pop-out');
+  overlay.classList.add('fade-out');
+  overlay.addEventListener('animationend', () => {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('fade-out');
+    box.classList.remove('pop-out');
+  }, { once: true });
+  if (!pausedBeforeTheme) resumeTimer();
 }
 
 function renderThemeTyped() {
@@ -74,6 +88,7 @@ function renderThemeTyped() {
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('sudoku-theme', theme);
+  if (currentAccentHSL) applyDynamicAccent(currentAccentHSL);
   closeThemeOverlay();
 }
 
@@ -231,6 +246,8 @@ const game = {
   difficulty: 'medium',
   startTime:  null,
   timerInterval: null,
+  elapsedMs:  0,
+  paused:     false,
   solved:     false,
 };
 
@@ -248,18 +265,43 @@ const modalTimeEl = document.getElementById('modal-time');
 
 function startTimer() {
   clearInterval(game.timerInterval);
+  game.elapsedMs = 0;
+  game.paused    = false;
   game.startTime = Date.now();
+  timerEl.classList.remove('paused');
   game.timerInterval = setInterval(() => {
-    timerEl.textContent = formatTime(Math.floor((Date.now() - game.startTime) / 1000));
+    timerEl.textContent = formatTime(Math.floor((Date.now() - game.startTime + game.elapsedMs) / 1000));
   }, 1000);
 }
 
 function stopTimer() {
   clearInterval(game.timerInterval);
+  game.timerInterval = null;
+}
+
+function pauseTimer() {
+  if (game.paused || game.solved) return;
+  game.paused     = true;
+  game.elapsedMs += Date.now() - game.startTime;
+  clearInterval(game.timerInterval);
+  game.timerInterval = null;
+  timerEl.classList.add('paused');
+  document.getElementById('pause-overlay').classList.remove('hidden');
+}
+
+function resumeTimer() {
+  if (!game.paused || game.solved) return;
+  game.paused    = false;
+  game.startTime = Date.now();
+  timerEl.classList.remove('paused');
+  document.getElementById('pause-overlay').classList.add('hidden');
+  game.timerInterval = setInterval(() => {
+    timerEl.textContent = formatTime(Math.floor((Date.now() - game.startTime + game.elapsedMs) / 1000));
+  }, 1000);
 }
 
 function elapsed() {
-  return Math.floor((Date.now() - game.startTime) / 1000);
+  return Math.floor((game.elapsedMs + (game.paused ? 0 : Date.now() - game.startTime)) / 1000);
 }
 
 // ── New Game ──────────────────────────────────────────────────────────────────
@@ -283,6 +325,7 @@ function newGame(difficulty) {
   pencilBtn.classList.remove('active');
   numpadEl.classList.remove('pencil-active');
   modalEl.classList.add('hidden');
+  document.getElementById('pause-overlay').classList.add('hidden');
   document.getElementById('difficulty-dropdown').classList.add('hidden');
   document.getElementById('btn-new-game').classList.remove('active');
 
@@ -531,11 +574,6 @@ function buildNumpad() {
     btn.addEventListener('click', () => inputNumber(n));
     numpadEl.appendChild(btn);
   }
-  const erase = document.createElement('button');
-  erase.className = 'num-btn erase';
-  erase.textContent = '⌫';
-  erase.addEventListener('click', () => inputNumber(0));
-  numpadEl.appendChild(erase);
 }
 
 // ── Event Listeners ───────────────────────────────────────────────────────────
@@ -569,10 +607,21 @@ document.getElementById('btn-play-again').addEventListener('click', () => {
   stopConfetti();
   newGame();
 });
-document.getElementById('btn-undo').addEventListener('click', undo);
 document.getElementById('btn-check').addEventListener('click', checkMistakes);
 document.getElementById('btn-solve').addEventListener('click', solveGame);
 pencilBtn.addEventListener('click', togglePencilMode);
+
+timerEl.addEventListener('click', () => {
+  if (game.solved) return;
+  game.paused ? resumeTimer() : pauseTimer();
+});
+
+document.getElementById('btn-resume').addEventListener('click', resumeTimer);
+
+document.addEventListener('visibilitychange', () => {
+  if (game.solved) return;
+  if (document.hidden) pauseTimer();
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -687,6 +736,8 @@ function stopConfetti() {
 
 // ── Title hover scramble ───────────────────────────────────────────────────────
 
+let currentAccentHSL = null;
+
 function randomAccentHSL() {
   const hue = Math.floor(Math.random() * 360);
   const sat = 75 + Math.floor(Math.random() * 20);  // 75–95%
@@ -695,6 +746,7 @@ function randomAccentHSL() {
 }
 
 function applyDynamicAccent({ hue, sat, lit }) {
+  currentAccentHSL = { hue, sat, lit };
   const root    = document.documentElement;
   const isDark  = (root.getAttribute('data-theme') || 'dark') === 'dark';
   root.style.setProperty('--accent',       `hsl(${hue}, ${sat}%, ${lit}%)`);
@@ -713,7 +765,7 @@ function applyDynamicAccent({ hue, sat, lit }) {
 
 (function () {
   const h1 = document.querySelector('h1');
-  h1.innerHTML = 'Sudoku'.split('').map(c => `<span class="title-letter">${c}</span>`).join('');
+  h1.innerHTML = 'Nate-doku'.split('').map(c => `<span class="title-letter">${c}</span>`).join('');
 
   let interval = null;
 

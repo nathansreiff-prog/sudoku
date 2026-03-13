@@ -110,7 +110,7 @@ body {
 header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   padding-bottom: 4px;
 }
 
@@ -121,6 +121,8 @@ h1 {
   color: var(--accent);
   line-height: 1;
   height: 1.5rem;
+  width: 7.5rem;
+  flex-shrink: 0;
   overflow: hidden;
   cursor: default;
 }
@@ -145,6 +147,36 @@ h1 span {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s;
+}
+
+#timer::after {
+  content: '⏸';
+  font-size: 0.95rem;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+#timer:hover {
+  color: var(--text);
+}
+
+#timer:hover::after {
+  opacity: 0.8;
+}
+
+#timer.paused {
+  opacity: 0.45;
+}
+
+#timer.paused::after {
+  content: '▶';
 }
 
 .badge-wrapper {
@@ -279,7 +311,7 @@ h1 span {
 }
 
 .cell.selected {
-  background: var(--selected-bg);
+  background: color-mix(in srgb, var(--accent) 30%, var(--accent-dim));
 }
 
 .cell.same-num {
@@ -287,7 +319,7 @@ h1 span {
 }
 
 .cell.highlighted {
-  background: var(--highlighted-bg);
+  background: var(--accent-dim);
 }
 
 .cell.mistake {
@@ -345,8 +377,9 @@ button:hover {
 }
 
 .btn-secondary:hover {
-  background: #2a2a2a;
-  border-color: #4a4a4a;
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ── Pencil Bar ── */
@@ -376,7 +409,6 @@ button:hover {
 
 #btn-pencil.active {
   background: var(--accent-dim);
-  color: var(--accent);
   border-color: var(--accent);
 }
 
@@ -449,7 +481,6 @@ button:hover {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  align-items: start;
 }
 
 /* ── New Game + Difficulty ── */
@@ -526,6 +557,24 @@ button:hover {
 
 .theme-overlay.hidden {
   display: none;
+}
+
+.theme-overlay.fade-out {
+  animation: overlay-fade-out 0.2s ease forwards;
+}
+
+@keyframes overlay-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.theme-box.pop-out {
+  animation: pop-out 0.2s ease forwards;
+}
+
+@keyframes pop-out {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92); opacity: 0; }
 }
 
 .theme-box {
@@ -614,6 +663,41 @@ button:hover {
   0%, 100% { transform: translateX(0); }
   20%, 60%  { transform: translateX(-8px); }
   40%, 80%  { transform: translateX(8px); }
+}
+
+/* ── Pause Overlay ── */
+
+.pause-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  backdrop-filter: blur(6px);
+}
+
+.pause-overlay.hidden {
+  display: none;
+}
+
+#btn-resume {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 14px 36px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  animation: pop-in 0.18s ease;
+  transition: background 0.12s;
+}
+
+#btn-resume:hover {
+  background: var(--accent-hover);
 }
 
 /* ── Modal ── */
